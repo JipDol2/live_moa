@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.myapp.mapper.ShoppingMapper">
+	<!-- 쇼핑방송 및 제품정보 등록 -->
+	<insert id="insertShopping">
+		INSERT INTO cast(cast_id,category,cast_date,cast_time,cast_name,cast_platform,seller,mem_id,shopping_link,hit)
+		VALUES((select nvl(max(cast_id),0)+1 as num from cast),#{category},#{cast_date},#{cast_time},#{cast_name},#{cast_platform},#{seller},#{mem_id},#{shopping_link},#{hit})
+	</insert>
+	<select id="getPK" parameterType="String" resultType="int"> <!-- 쇼핑방송 PK가져오기 -->
+		SELECT MAX(cast_id) as cast_id
+		FROM cast
+		WHERE mem_id=#{mem_id}
+	</select>	
+	<insert id="insertProduct">
+		INSERT INTO product(product_id,cast_id,product_name,price,discount)
+		VALUES((select nvl(max(product_id),0)+1 as num from product),#{cast_id},#{product_name},#{price},#{discount})
+	</insert>
+	
+	<!-- 쇼핑방송 및 제품정보 수정 -->
+	<update id="updateShopping">
+		UPDATE cast
+		SET category=#{category},cast_date=#{cast_date},cast_time=#{cast_time},cast_name=#{cast_name},
+			cast_platform=#{cast_platform},seller=#{seller},shopping_link=#{shopping_link}
+		WHERE cast_id=#{cast_id}
+	</update>
+	<update id="updateProduct">
+		UPDATE product
+		SET product_name=#{product_name},price=#{price},discount=#{discount}
+		WHERE cast_id=#{cast_id} AND product_id=#{product_id}
+	</update>
+	
+	<!-- 쇼핑방송 및 제품정보 삭제 -->
+	<delete id="deleteShopping">
+		DELETE
+		FROM cast
+		WHERE cast_id=#{cast_id}
+	</delete>
+	<delete id="deleteProduct">
+		DELETE
+		FROM product
+		WHERE product_id=#{product_id}
+	</delete>
+	
+	<!-- 전체 쇼핑방송 리스팅 -->
+	<select id="listShopping" resultType="shopping"> <!-- mybatis-config.xml파일에서 별칭(alias)을 부여해서 사용가능 -->
+		<![CDATA[
+		SELECT *
+		FROM (SELECT rownum as rn, A.*
+			  FROM (SELECT * 
+			  		FROM cast 
+			  		WHERE category=${category}
+			  		ORDER BY cast_date DESC, cast_time ASC, cast_id DESC) A
+			  WHERE rownum <= #{end})
+		WHERE rn >= #{begin}
+		]]>		
+	</select>
+	
+	<!-- 쇼핑방송 갯수(카테고리) -->
+	<select id="countShopping" parameterType="String" resultType = "int">
+		SELECT count(*) 
+		FROM cast
+		WHERE category=#{category}
+	</select>
+	
+	<!-- 쇼핑방송 갯수(전체) -->
+	<select id="totalCountShopping" resultType = "int">
+		SELECT count(*) 
+		FROM cast
+	</select>
+	
+	<!-- 조회수 update  -->
+	<update id="updateHit" parameterType="int">
+		UPDATE cast
+		SET hit=hit+1
+		WHERE cast_id=#{cast_id}
+	</update>
+	
+	<!-- 쇼핑방송 1개의 세부정보 가져오기 -->
+	<select id="getShopping" parameterType="int" resultType="shopping">
+		SELECT * 
+		FROM cast
+		WHERE cast_id=#{cast_id}
+	</select>
+	
+	<!-- 관심쇼핑 등록 -->
+	<insert id="insertInterest">
+		INSERT INTO interest(mem_id,cast_id)
+		VALUES(#{mem_id},#{cast_id})
+	</insert>	
+	
+	<!-- 관심쇼핑 등록 전 중복체크 -->
+	<select id="duplicationCheck" resultType="int">
+		SELECT count(*)
+		FROM interest
+		WHERE mem_id=#{mem_id} AND cast_id=#{cast_id}
+	</select>
+	
+	<!-- 관심쇼핑 리스트 -->
+	<select id="listInterest" parameterType="String" resultType="interest">
+		SELECT I.mem_id, C.cast_id, C.category, C.cast_date, C.cast_time, C.cast_name, C.cast_platform, C.seller, C.mem_id, C.shopping_link, P.product_name, P.price, P.product_id
+		FROM interest I 
+		    INNER JOIN cast C ON I.cast_id = C.cast_id 
+		    INNER JOIN product P ON ( C.cast_id = P.cast_id )
+		WHERE I.mem_id=#{mem_id}
+	</select>
+	
+	<!-- 관심쇼핑 삭제 -->
+	<delete id="deleteInterest" parameterType="interest">
+		DELETE
+		FROM interest
+		WHERE cast_id=TO_NUMBER('${cast_id}') AND mem_id=#{mem_id}
+	</delete>
+</mapper>

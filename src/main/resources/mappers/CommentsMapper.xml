@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.myapp.mapper.CommentsMapper">
+	<select id="readComments" parameterType="int" resultType="comments">
+		SELECT mem_id, content, write_date
+		FROM comments
+		WHERE cast_id=#{cast_id}
+		ORDER BY comment_id
+	</select>
+	<insert id="writeComments" parameterType="comments">
+		INSERT INTO comments(comment_id, cast_id, mem_id, content, write_date) 
+		VALUES((SELECT nvl(max(comment_id),0)+1 as comment_id FROM comments), 
+		#{cast_id}, #{mem_id}, #{content}, to_date(sysdate,'yyyy.mm.dd hh24:mi'))
+	</insert>
+</mapper>

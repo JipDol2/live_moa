@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- xml에서 패키지명이 긴 경우 별칭 지정 -->
+	<typeAliases>
+		<typeAlias type="com.mycompany.myapp.domain.ShoppingDTO" alias="shopping"/> 
+		<typeAlias type="com.mycompany.myapp.domain.ProductDTO" alias="product"/>
+		<typeAlias type="com.mycompany.myapp.domain.CommentsDTO" alias="comments"/>
+		<typeAlias type="com.mycompany.myapp.domain.InterestDTO" alias="interest"/> 
+	</typeAliases>
+</configuration>
